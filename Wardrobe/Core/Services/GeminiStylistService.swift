@@ -5,10 +5,10 @@ import Foundation
 /// `generateContent` REST endpoint with JSON response mode. Selected by `AppContainer` when
 /// `GEMINI_API_KEY` is set (takes precedence over Anthropic if both are present).
 ///
-/// Model: `gemini-2.0-flash` — fast + low-cost + vision-capable. Change `Self.model` if you want
-/// a different tier (e.g. `gemini-2.5-flash`).
+/// Model: `gemini-2.5-flash` — fast, multimodal, and confirmed working on the project's key
+/// (`gemini-2.0-flash` returned 0 free-tier quota). Change `Self.model` to switch tiers.
 struct GeminiStylistService: ClaudeServiceProtocol {
-    static let model = "gemini-2.0-flash"
+    static let model = "gemini-2.5-flash"
     static var endpoint: URL {
         URL(string: "https://generativelanguage.googleapis.com/v1beta/models/\(model):generateContent")!
     }
