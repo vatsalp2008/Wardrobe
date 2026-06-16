@@ -27,6 +27,7 @@ final class ClosetViewModel: ObservableObject {
     func load() async {
         isLoading = true
         defer { isLoading = false }
+        await wardrobe.syncFromCloud()   // pull cloud rows first (no-op when sync is off)
         items = (try? await wardrobe.fetchAll()) ?? []
     }
 

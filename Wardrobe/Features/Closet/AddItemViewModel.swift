@@ -19,12 +19,14 @@ final class AddItemViewModel: ObservableObject {
 
     private let vision: VisionServiceProtocol
     private let ml: MLServiceProtocol
+    private let claude: ClaudeServiceProtocol
     private let imageStorage: ImageStorageManaging
     private let wardrobe: WardrobeRepositoryProtocol
 
     init(container: AppContainer) {
         self.vision = container.vision
         self.ml = container.ml
+        self.claude = container.claude
         self.imageStorage = container.imageStorage
         self.wardrobe = container.wardrobe
     }
@@ -34,8 +36,22 @@ final class AddItemViewModel: ObservableObject {
         step = .processing
         do {
             let (segmented, confidence) = try await vision.segment(image)
-            let tags = try await ml.classify(segmented)
             segmentedImage = segmented
+
+            // Prefer Claude vision (F1) for category/pattern/formality/seasons; fall back to
+            // the on-device stub. Colors are always extracted on-device for reliability.
+            var tags: ClothingTags
+            if let data = segmented.jpegData(compressionQuality: 0.8),
+               let visionTags = try? await claude.tagGarment(imageData: data),
+               visionTags.confidence >= ClothingTags.manualReviewThreshold {
+                tags = visionTags
+            } else {
+                tags = try await ml.classify(segmented)
+            }
+            if tags.colors.isEmpty {
+                tags.colors = DominantColor.extract(from: segmented, maxColors: 2)
+            }
+
             needsManualTags = tags.confidence < ClothingTags.manualReviewThreshold
                 || confidence < LiveVisionService.confidenceThreshold
             draft = ClothingItem(

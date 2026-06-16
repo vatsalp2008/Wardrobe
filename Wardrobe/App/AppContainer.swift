@@ -63,8 +63,13 @@ final class AppContainer: ObservableObject {
 
         self.imageStorage = ImageStorageManager(supabase: supabase)
 
-        // Local-first Core Data wardrobe; other repositories swap in their respective phases.
-        self.wardrobe = CoreDataWardrobeRepository()
+        // Local-first Core Data wardrobe; mirror to Supabase when cloud sync is configured (F9).
+        let localWardrobe = CoreDataWardrobeRepository()
+        if supabase.isConfigured {
+            self.wardrobe = SyncingWardrobeRepository(local: localWardrobe, supabase: supabase)
+        } else {
+            self.wardrobe = localWardrobe
+        }
         self.outfits = InMemoryOutfitRepository()
         self.tryOn = InMemoryTryOnRepository()
         self.gap = InMemoryGapRepository()

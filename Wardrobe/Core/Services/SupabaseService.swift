@@ -12,6 +12,15 @@ protocol SupabaseServiceProtocol: Sendable {
 
     /// Uploads image data to the named bucket and returns its URL.
     func uploadImage(_ data: Data, bucket: StorageBucket, fileName: String) async throws -> String
+
+    // MARK: - Wardrobe row sync (F9)
+
+    /// Inserts or updates a wardrobe item row in the cloud `wardrobe_items` table.
+    func upsertItem(_ item: ClothingItem) async throws
+    /// Deletes a wardrobe item row by id.
+    func deleteItem(id: UUID) async throws
+    /// Fetches all of the current user's wardrobe item rows.
+    func fetchItems() async throws -> [ClothingItem]
 }
 
 /// Supabase storage buckets (spec §6.3).
@@ -29,4 +38,8 @@ struct MockSupabaseService: SupabaseServiceProtocol {
     func uploadImage(_ data: Data, bucket: StorageBucket, fileName: String) async throws -> String {
         "mock://\(bucket.rawValue)/\(fileName)"
     }
+
+    func upsertItem(_ item: ClothingItem) async throws {}
+    func deleteItem(id: UUID) async throws {}
+    func fetchItems() async throws -> [ClothingItem] { [] }
 }

@@ -10,6 +10,12 @@ protocol WardrobeRepositoryProtocol: Sendable {
     func delete(id: UUID) async throws
     /// Increments wear count and stamps `lastWorn` (spec §5.2 wear tracker).
     func markWorn(id: UUID, on date: Date) async throws
+    /// Pulls cloud rows into local storage (no-op when cloud sync is off).
+    func syncFromCloud() async
+}
+
+extension WardrobeRepositoryProtocol {
+    func syncFromCloud() async {}   // default: local-only repositories don't sync
 }
 
 actor InMemoryWardrobeRepository: WardrobeRepositoryProtocol {
@@ -98,5 +104,47 @@ final class CoreDataWardrobeRepository: WardrobeRepositoryProtocol, @unchecked S
         request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
         request.fetchLimit = 1
         return try context.fetch(request).first
+    }
+}
+
+/// Wraps a local wardrobe repository and mirrors writes to Supabase, and pulls cloud rows on
+/// `syncFromCloud()` (F9). Cloud pushes are best-effort so offline use is never blocked.
+final class SyncingWardrobeRepository: WardrobeRepositoryProtocol, @unchecked Sendable {
+    private let local: WardrobeRepositoryProtocol
+    private let supabase: SupabaseServiceProtocol
+
+    init(local: WardrobeRepositoryProtocol, supabase: SupabaseServiceProtocol) {
+        self.local = local
+        self.supabase = supabase
+    }
+
+    func fetchAll() async throws -> [ClothingItem] { try await local.fetchAll() }
+
+    func add(_ item: ClothingItem) async throws {
+        try await local.add(item)
+        try? await supabase.upsertItem(item)
+    }
+
+    func update(_ item: ClothingItem) async throws {
+        try await local.update(item)
+        try? await supabase.upsertItem(item)
+    }
+
+    func delete(id: UUID) async throws {
+        try await local.delete(id: id)
+        try? await supabase.deleteItem(id: id)
+    }
+
+    func markWorn(id: UUID, on date: Date) async throws {
+        try await local.markWorn(id: id, on: date)
+        if let updated = try? await local.fetchAll().first(where: { $0.id == id }) {
+            try? await supabase.upsertItem(updated)
+        }
+    }
+
+    /// Pull cloud rows and upsert them locally (cloud is the source of truth for cross-device).
+    func syncFromCloud() async {
+        guard let remote = try? await supabase.fetchItems() else { return }
+        for item in remote { try? await local.update(item) }   // update() upserts in Core Data
     }
 }

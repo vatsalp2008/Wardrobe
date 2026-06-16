@@ -68,6 +68,74 @@ struct LiveClaudeService: ClaudeServiceProtocol {
         }
     }
 
+    func tagGarment(imageData: Data) async throws -> ClothingTags {
+        let base64 = imageData.base64EncodedString()
+        let text = try await sendVisionMessage(
+            system: Self.tagSystemPrompt,
+            imageBase64: base64,
+            mediaType: "image/jpeg",
+            prompt: "Classify this single garment. Respond with ONLY the JSON object.",
+            maxTokens: 500
+        )
+        let dto: GarmentTagDTO = try Self.decodeJSONObject(from: text)
+        return dto.toTags()
+    }
+
+    private func sendVisionMessage(system: String, imageBase64: String, mediaType: String,
+                                   prompt: String, maxTokens: Int) async throws -> String {
+        var request = URLRequest(url: Self.endpoint)
+        request.httpMethod = "POST"
+        request.setValue(apiKey, forHTTPHeaderField: "x-api-key")
+        request.setValue(Self.anthropicVersion, forHTTPHeaderField: "anthropic-version")
+        request.setValue("application/json", forHTTPHeaderField: "content-type")
+
+        let body: [String: Any] = [
+            "model": Self.model,
+            "max_tokens": maxTokens,
+            "system": system,
+            "messages": [[
+                "role": "user",
+                "content": [
+                    ["type": "image",
+                     "source": ["type": "base64", "media_type": mediaType, "data": imageBase64]],
+                    ["type": "text", "text": prompt]
+                ]
+            ]]
+        ]
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+
+        let (data, response) = try await session.data(for: request)
+        guard let http = response as? HTTPURLResponse else { throw ClaudeError.network }
+        guard http.statusCode == 200 else {
+            throw ClaudeError.api(status: http.statusCode, body: String(data: data, encoding: .utf8) ?? "")
+        }
+        let decoded = try JSONDecoder().decode(MessagesResponse.self, from: data)
+        if decoded.stopReason == "refusal" { throw ClaudeError.refused }
+        guard let text = decoded.content.first(where: { $0.type == "text" })?.text else {
+            throw ClaudeError.emptyResponse
+        }
+        return text
+    }
+
+    /// Decodes the first top-level JSON object from `text`.
+    private static func decodeJSONObject<T: Decodable>(from text: String) throws -> T {
+        guard let start = text.firstIndex(of: "{"),
+              let end = text.lastIndex(of: "}"), start < end,
+              let data = String(text[start...end]).data(using: .utf8) else {
+            throw ClaudeError.parse
+        }
+        return try JSONDecoder().decode(T.self, from: data)
+    }
+
+    static let tagSystemPrompt = """
+    You are a fashion cataloging assistant. Look at the garment image and classify it.
+    Respond with ONLY a JSON object (no prose):
+    {"category": one of [top, bottom, outerwear, shoes, accessory, dress],
+     "pattern": one of [solid, striped, plaid, floral, graphic],
+     "formality": one of [casual, smart_casual, business, formal],
+     "seasons": array from [spring, summer, fall, winter]}
+    """
+
     static let gapSystemPrompt = """
     You are a personal stylist analyzing a wardrobe's "gaps". You receive a JSON object with the \
     wardrobe size and a list of candidate items, each with how many NEW valid outfit combinations \
@@ -228,6 +296,24 @@ private struct GapRankingDTO: Decodable {
     let index: Int
     let trendAlignment: Double?
     let reasoning: String?
+}
+
+private struct GarmentTagDTO: Decodable {
+    let category: String?
+    let pattern: String?
+    let formality: String?
+    let seasons: [String]?
+
+    func toTags() -> ClothingTags {
+        ClothingTags(
+            category: category.flatMap(ClothingCategory.init(rawValue:)) ?? .top,
+            colors: [],   // filled on-device by the caller (DominantColor)
+            pattern: pattern.flatMap(ClothingPattern.init(rawValue:)) ?? .solid,
+            formality: formality.flatMap(FormalityLevel.init(rawValue:)) ?? .casual,
+            seasons: (seasons ?? []).compactMap(Season.init(rawValue:)),
+            confidence: 0.9   // confident enough to skip the manual-review banner
+        )
+    }
 }
 
 enum ClaudeError: Error {

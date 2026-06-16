@@ -19,6 +19,11 @@ protocol ClaudeServiceProtocol: Sendable {
     /// Picks the top gap suggestions from the matrix-computed candidates, adding reasoning and
     /// trend alignment (shopping results are filled in afterward by SerpService).
     func analyzeGap(wardrobe: [ClothingItem], candidates: [GapCandidate]) async throws -> [GapSuggestion]
+
+    /// Classifies a segmented garment image into category/pattern/formality/seasons (F1).
+    /// The live client uses Claude vision; the mock returns low confidence so the review screen
+    /// prompts for manual tags (colors are always filled on-device by the caller).
+    func tagGarment(imageData: Data) async throws -> ClothingTags
 }
 
 /// Deterministic, offline stand-in. Doubles as the permanent fallback when no API key
@@ -71,6 +76,12 @@ struct MockClaudeService: ClaudeServiceProtocol {
                     + "\(candidate.category.displayName.lowercased()) options."
             )
         }
+    }
+
+    func tagGarment(imageData: Data) async throws -> ClothingTags {
+        // No vision without a key — return low confidence so the user confirms tags manually.
+        ClothingTags(category: .top, colors: [], pattern: .solid,
+                     formality: .casual, seasons: [], confidence: 0.0)
     }
 }
 
