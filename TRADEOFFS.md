@@ -19,14 +19,26 @@ unblocked by account setup.
 **Trigger to revisit:** Each feature phase wires its own live adapter (see backlog). Live wiring
 points are marked `// Phase N:` in `Wardrobe/App/AppContainer.swift`.
 
-### 2. 🟡 In-memory repositories instead of Core Data
-**Decision:** `InMemory*Repository` types back the app in Phase 0; data does not persist across
-app launches.
-**Why:** Avoids shipping a Core Data model before we need one; keeps Phase 0 buildable with zero
-persistence code.
-**Cost:** Nothing is saved — restart wipes state.
-**Trigger to revisit:** **Phase 1** — introduce `Wardrobe.xcdatamodeld` + Core-Data-backed
-`WardrobeRepository`. `CoreDataStack.swift` is the placeholder marking where it goes.
+### 2. 🟡 In-memory repositories for outfits / try-on / gap
+**Decision:** The **wardrobe** is now Core Data-backed (`CoreDataWardrobeRepository`, persists
+across launches). Outfits, try-on, and gap still use `InMemory*Repository`.
+**Why:** Each is persisted in the phase that owns it; no need for their tables yet.
+**Cost:** Generated outfits / try-on cache / gap results reset on restart until their phases.
+**Trigger to revisit:** Phase 2 (outfits), Phase 3 (try-on cache), Phase 4 (gap cache) —
+add their entities to `Wardrobe.xcdatamodeld`.
+
+### 6. 🟡 Garment images stored as local thumbnail only
+**Decision:** On save we keep a ~600px thumbnail in Core Data (`thumbnailData`) and set
+`imageURL` to a mock Supabase URL. The full-resolution background-removed PNG is not persisted.
+**Why:** Supabase upload is mocked until Phase 5; the thumbnail is enough to render the closet.
+**Cost:** No full-res original; `imageURL` isn't loadable yet (cards fall back to the thumbnail).
+**Trigger to revisit:** Phase 5 — real Supabase upload returns a usable `imageURL`.
+
+### 7. 🟢 Manual camera capture (no auto-capture)
+**Decision:** `CameraCaptureView` uses a manual shutter button + framing guide.
+**Why:** Auto-capture-when-frame-filled (spec §7.3) is polish, not core.
+**Cost:** User taps to capture instead of it firing automatically.
+**Trigger to revisit:** Phase 5 polish, if desired.
 
 ### 3. 🟢 XcodeGen project (`.xcodeproj` is gitignored)
 **Decision:** `project.yml` is the source of truth; `Wardrobe.xcodeproj` is regenerated and not
@@ -55,8 +67,8 @@ adding files via Xcode's UI alone won't stick.
 
 | # | Item | Why deferred | Blocks | Owner |
 |---|------|--------------|--------|-------|
-| F1 | 🔴 **Train `ClothingClassifier.mlmodel`** (CreateML / MobileNetV3 on DeepFashion) for auto-tagging category/pattern/formality | Needs a labeled DeepFashion dataset sourced + training time | Real auto-tagging in Phase 1 (manual-tag review path works meanwhile) | **Vatsal: source dataset** |
-| F2 | 🔴 Real on-device **Vision segmentation** pipeline (`VNGenerateForegroundInstanceMaskRequest` + iOS-16 fallback + Remove.bg) | Phase 1 scope | Background-removed garment images | Phase 1 |
+| F1 | 🟡 **Auto-tag category/pattern/formality** (see decision log below) | Chose manual tagging for now (option 1); colors already auto-detected | Auto-tagging beyond color | Deferred — see decision log |
+| F2 | ✅ **DONE (Phase 1)** — Real on-device Vision segmentation (`VNGenerateForegroundInstanceMaskRequest` iOS17 + person-segmentation iOS16 fallback + Remove.bg hook) | — | — | — |
 | F3 | 🟡 **Camera capture** (AVFoundation) with framing overlay | Camera only works on a physical device + needs signing (see tradeoff #4) | Capturing items without the Photos picker | Phase 1 (device) |
 | F4 | 🟡 **WeatherKit** live weather | Requires Apple Developer Program ($99/yr) entitlement; seasonal fallback used until then | Accurate weather-aware outfits (degrades gracefully) | Phase 2 |
 | F5 | 🟡 **Claude API** live outfit/gap generation | Needs `ANTHROPIC_API_KEY`; rule-based mock is the offline fallback | On-trend, reasoned suggestions | Phase 2 / 4 |
@@ -68,6 +80,31 @@ adding files via Xcode's UI alone won't stick.
 | F11 | 🟢 **Apple Developer Program enrollment** ($99/yr) | Not needed for Simulator work | Gates F3 (device), F4 (WeatherKit), TestFlight | When ready for device/beta |
 
 ---
+
+## Decision log — F1: auto-tagging category/pattern/formality
+
+**Today:** colors are auto-detected on-device; **category / pattern / formality are tagged
+manually** by the user in `ItemReviewView`. `OnDeviceMLService` returns those three at
+confidence 0 to force the review prompt.
+
+**Decision (current):** **Option 1 — keep manual tagging.** It's fully functional (a few taps
+per item) and unblocks all later phases. No dataset, no training, no cost.
+
+**Future paths (pick later — not started):**
+
+- **Option 2 — Train a Core ML model (the spec's approach).** Obtain a labeled clothing dataset
+  (DeepFashion — free but requires an access form + large download; or the easier-to-get Kaggle
+  "Fashion Product Images" set), train an image classifier with **CreateML** (no-code, ~30–60 min)
+  or fine-tune MobileNetV3, bundle `ClothingClassifier.mlmodel`, and wire it into
+  `OnDeviceMLService`. *Pros:* on-device, free at inference, offline. *Cons:* dataset sourcing +
+  training effort; **needs Vatsal to obtain the dataset.**
+- **Option 3 — AI vision via Claude.** Send the segmented garment photo to Claude's vision API
+  (already in the stack from Phase 2) and have it return category/pattern/formality as JSON.
+  *Pros:* no dataset, no training, likely high accuracy, minimal code. *Cons:* network call + a
+  small per-item cost; not on-device (departs from spec's on-device goal).
+
+**Leaning:** Option 3 is likely the lower-effort long-term win since Claude is already integrated;
+revisit once Phase 2 lands the Claude client.
 
 ## How to use this doc
 - When we take a new shortcut, add a row to **Current tradeoffs** with its trigger.

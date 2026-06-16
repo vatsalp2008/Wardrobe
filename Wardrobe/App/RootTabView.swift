@@ -3,9 +3,11 @@ import SwiftUI
 /// The five-tab shell (spec §7.1). Tabs hold placeholder screens in Phase 0 and are filled
 /// in by their respective feature phases.
 struct RootTabView: View {
+    @EnvironmentObject private var container: AppContainer
+
     var body: some View {
         TabView {
-            ClosetView()
+            ClosetView(container: container)
                 .tabItem { Label("Closet", systemImage: "square.grid.2x2") }
 
             OutfitFeedView()

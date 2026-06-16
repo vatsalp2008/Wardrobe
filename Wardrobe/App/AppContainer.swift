@@ -43,14 +43,16 @@ final class AppContainer: ObservableObject {
         // Phase 1: config.isPresent(.removeBGKey) ? RemoveBGService(...) : MockBackgroundRemovalService()
         self.backgroundRemoval = MockBackgroundRemovalService()
 
-        // Phase 1: real Vision pipeline + Core ML classifier replace these stubs.
-        self.vision = StubVisionService()
-        self.ml = StubMLService()
+        // On-device Vision segmentation + dominant-color classifier (Phase 1).
+        // F1 (TRADEOFFS): the trained ClothingClassifier.mlmodel still replaces the
+        // category/pattern/formality predictions in OnDeviceMLService once available.
+        self.vision = LiveVisionService(fallback: backgroundRemoval)
+        self.ml = OnDeviceMLService()
 
         self.imageStorage = ImageStorageManager(supabase: supabase)
 
-        // Phase 1+: swap InMemory* for Core-Data-backed repositories.
-        self.wardrobe = InMemoryWardrobeRepository()
+        // Local-first Core Data wardrobe; other repositories swap in their respective phases.
+        self.wardrobe = CoreDataWardrobeRepository()
         self.outfits = InMemoryOutfitRepository()
         self.tryOn = InMemoryTryOnRepository()
         self.gap = InMemoryGapRepository()

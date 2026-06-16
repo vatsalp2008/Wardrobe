@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="22522" systemVersion="23A344" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithSwiftData="false" userDefinedModelVersionIdentifier="">
+    <entity name="ClothingItemEntity" representedClassName="ClothingItemEntity" syncable="YES">
+        <attribute name="brand" optional="YES" attributeType="String"/>
+        <attribute name="categoryRaw" attributeType="String" defaultValueString="top"/>
+        <attribute name="colorsRaw" attributeType="String" defaultValueString=""/>
+        <attribute name="dateAdded" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="embeddingData" optional="YES" attributeType="Binary"/>
+        <attribute name="formalityRaw" attributeType="String" defaultValueString="casual"/>
+        <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="imageURL" attributeType="String" defaultValueString=""/>
+        <attribute name="lastWorn" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="name" attributeType="String" defaultValueString=""/>
+        <attribute name="notes" optional="YES" attributeType="String"/>
+        <attribute name="patternRaw" attributeType="String" defaultValueString="solid"/>
+        <attribute name="seasonsRaw" attributeType="String" defaultValueString=""/>
+        <attribute name="thumbnailData" optional="YES" attributeType="Binary" allowsExternalBinaryDataStorage="YES"/>
+        <attribute name="wearCount" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="id"/>
+            </uniquenessConstraint>
+        </uniquenessConstraints>
+    </entity>
+</model>
