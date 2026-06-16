@@ -36,6 +36,7 @@ struct AppConfig {
 
     enum Key: String {
         case anthropicAPIKey = "ANTHROPIC_API_KEY"
+        case geminiAPIKey = "GEMINI_API_KEY"
         case replicateAPIToken = "REPLICATE_API_TOKEN"
         case supabaseURL = "SUPABASE_URL"
         case supabaseAnonKey = "SUPABASE_ANON_KEY"

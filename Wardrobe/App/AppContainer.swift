@@ -30,9 +30,11 @@ final class AppContainer: ObservableObject {
     let gap: GapRepositoryProtocol
 
     init(config: AppConfig = .shared) {
-        // Live Anthropic client when a key is configured; deterministic mock otherwise.
-        if let apiKey = config.value(for: .anthropicAPIKey) {
-            self.claude = LiveClaudeService(apiKey: apiKey)
+        // AI stylist provider: Gemini if its key is set, else Claude, else deterministic mock.
+        if let geminiKey = config.value(for: .geminiAPIKey) {
+            self.claude = GeminiStylistService(apiKey: geminiKey)
+        } else if let anthropicKey = config.value(for: .anthropicAPIKey) {
+            self.claude = LiveClaudeService(apiKey: anthropicKey)
         } else {
             self.claude = MockClaudeService()
         }

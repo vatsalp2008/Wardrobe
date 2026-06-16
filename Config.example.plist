@@ -13,6 +13,10 @@
     <key>ANTHROPIC_API_KEY</key>
     <string></string>
 
+    <!-- Alternative AI provider. If set, Gemini is used instead of Claude. -->
+    <key>GEMINI_API_KEY</key>
+    <string></string>
+
     <key>REPLICATE_API_TOKEN</key>
     <string></string>
 

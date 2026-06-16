@@ -49,7 +49,8 @@ Copy `Config.example.plist` → `Wardrobe/Config.plist` (gitignored) and fill in
 
 | Key | Enables |
 |---|---|
-| `ANTHROPIC_API_KEY` | Real outfit/gap reasoning + garment auto-tagging |
+| `ANTHROPIC_API_KEY` | Real outfit/gap reasoning + garment auto-tagging (Claude) |
+| `GEMINI_API_KEY` | Same AI features via Google Gemini (used instead of Claude if set) |
 | `REPLICATE_API_TOKEN` | Real virtual try-on render |
 | `SERPAPI_KEY` | Real shopping results |
 | `SUPABASE_URL` + `SUPABASE_ANON_KEY` | Cloud auth, image hosting, cross-device sync (see SETUP.md §4b) |
