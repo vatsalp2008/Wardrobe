@@ -6,6 +6,11 @@ Each entry has a **trigger** — the event that means it's time to revisit.
 
 Legend: 🟢 low-risk / intentional · 🟡 needs follow-up before a real release · 🔴 blocks a feature until done
 
+> For the forward-looking "what's left / what's ahead" summary, see [ROADMAP.md](ROADMAP.md).
+> **AI provider note:** the active stylist provider is now **Google Gemini** (`gemini-2.5-flash`);
+> the Claude client remains wired as an alternative. F1/F5 below describe the Claude path; Gemini
+> is the same protocol with a different wire client.
+
 ---
 
 ## Current tradeoffs (active shortcuts)

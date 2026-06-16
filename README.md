@@ -83,6 +83,7 @@ xcodebuild -project Wardrobe.xcodeproj -scheme Wardrobe -sdk iphonesimulator \
 
 ## Documentation
 
+- **[ROADMAP.md](ROADMAP.md)** — current status, what's left, what's ahead, App Store checklist
 - **[SETUP.md](SETUP.md)** — toolchain, project generation, signing, API keys, Supabase setup
 - **[TRADEOFFS.md](TRADEOFFS.md)** — deliberate shortcuts, remaining work, and decision log
 - **Wardrobe_iOS_Project_Spec.docx** — original product/engineering spec
