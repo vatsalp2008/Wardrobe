@@ -34,6 +34,15 @@ add their entities to `Wardrobe.xcdatamodeld`.
 **Cost:** No full-res original; `imageURL` isn't loadable yet (cards fall back to the thumbnail).
 **Trigger to revisit:** Phase 5 — real Supabase upload returns a usable `imageURL`.
 
+### 8. 🟡 Simplified trend pipeline + occasion regeneration
+**Decision:** Trend score is assigned by Claude during generation using `SerpService.trendingKeywords()`
+(mocked). There's no separate weekly trend-keyword cache. Occasion filter chips **regenerate** the
+feed for the selected occasion rather than producing one mixed-occasion batch.
+**Why:** Keeps Phase 2 to one Claude call per refresh; the weekly-cache + multi-occasion feed is more
+than the MVP needs.
+**Cost:** Trend keywords aren't real until SerpAPI is wired (F8); switching occasion costs a regenerate.
+**Trigger to revisit:** Phase 4 (real SerpAPI), or a polish pass for a mixed-occasion feed + 7-day trend cache.
+
 ### 7. 🟢 Manual camera capture (no auto-capture)
 **Decision:** `CameraCaptureView` uses a manual shutter button + framing guide.
 **Why:** Auto-capture-when-frame-filled (spec §7.3) is polish, not core.
@@ -71,7 +80,7 @@ adding files via Xcode's UI alone won't stick.
 | F2 | ✅ **DONE (Phase 1)** — Real on-device Vision segmentation (`VNGenerateForegroundInstanceMaskRequest` iOS17 + person-segmentation iOS16 fallback + Remove.bg hook) | — | — | — |
 | F3 | 🟡 **Camera capture** (AVFoundation) with framing overlay | Camera only works on a physical device + needs signing (see tradeoff #4) | Capturing items without the Photos picker | Phase 1 (device) |
 | F4 | 🟡 **WeatherKit** live weather | Requires Apple Developer Program ($99/yr) entitlement; seasonal fallback used until then | Accurate weather-aware outfits (degrades gracefully) | Phase 2 |
-| F5 | 🟡 **Claude API** live outfit/gap generation | Needs `ANTHROPIC_API_KEY`; rule-based mock is the offline fallback | On-trend, reasoned suggestions | Phase 2 / 4 |
+| F5 | ✅ **DONE (Phase 2)** — Live Claude client for outfit generation (`LiveClaudeService`, raw-HTTP `claude-sonnet-4-6`). Activates automatically when `ANTHROPIC_API_KEY` is set; deterministic mock is the offline fallback. *(Gap analysis still routes to the mock until Phase 4.)* | — | — | — |
 | F6 | 🟡 **CLIP embeddings** for visual similarity search | Embedding vector is stubbed on `ClothingItem` for now | "Find similar items" / smarter pairing | Later enhancement |
 | F7 | 🟡 **Replicate IDM-VTON** try-on + result caching + daily cost limit | Needs `REPLICATE_API_TOKEN`; ~\$0.01/run | Virtual try-on | Phase 3 |
 | F8 | 🟡 **SerpAPI** live shopping + weekly trend keywords | Needs `SERPAPI_KEY` ($50/mo plan) | Real shopping results in Gap Finder | Phase 4 |

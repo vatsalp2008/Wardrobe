@@ -35,7 +35,8 @@ final class Phase0SmokeTests: XCTestCase {
         let outfits = try await claude.generateOutfits(
             wardrobe: SampleData.items,
             weather: WeatherInfo(temperatureC: 18, highC: 22, condition: "Mild", isFallback: true),
-            occasion: .casual
+            occasion: .casual,
+            trendKeywords: []
         )
         XCTAssertFalse(outfits.isEmpty)
         XCTAssertLessThanOrEqual(outfits.count, 5)

@@ -30,14 +30,18 @@ final class AppContainer: ObservableObject {
     let gap: GapRepositoryProtocol
 
     init(config: AppConfig = .shared) {
-        // Phase 2: config.isPresent(.anthropicAPIKey) ? LiveClaudeService(...) : MockClaudeService()
-        self.claude = MockClaudeService()
+        // Live Anthropic client when a key is configured; deterministic mock otherwise.
+        if let apiKey = config.value(for: .anthropicAPIKey) {
+            self.claude = LiveClaudeService(apiKey: apiKey)
+        } else {
+            self.claude = MockClaudeService()
+        }
         // Phase 3: config.isPresent(.replicateAPIToken) ? LiveReplicateService(...) : MockReplicateService()
         self.replicate = MockReplicateService()
         // Phase 4: config.isPresent(.serpAPIKey) ? LiveSerpService(...) : MockSerpService()
         self.serp = MockSerpService()
-        // Phase 2: WeatherKit adapter when entitlement present; else seasonal/OpenWeatherMap fallback.
-        self.weather = MockWeatherService()
+        // Seasonal weather by default; WeatherKit (F4) swaps in once the entitlement is available.
+        self.weather = SeasonalWeatherService()
         // Phase 5: config.isPresent(.supabaseURL) ? LiveSupabaseService(...) : MockSupabaseService()
         self.supabase = MockSupabaseService()
         // Phase 1: config.isPresent(.removeBGKey) ? RemoveBGService(...) : MockBackgroundRemovalService()

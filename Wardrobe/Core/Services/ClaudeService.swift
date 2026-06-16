@@ -5,11 +5,12 @@ import Foundation
 /// model `claude-sonnet-4-6`) is implemented in Phase 2/4; Phase 0 ships `MockClaudeService`.
 protocol ClaudeServiceProtocol: Sendable {
     /// Returns up to 5 outfits assembled from `wardrobe`, respecting weather, occasion,
-    /// and recent-wear rules.
+    /// trend keywords, and recent-wear rules.
     func generateOutfits(
         wardrobe: [ClothingItem],
         weather: WeatherInfo,
-        occasion: Occasion
+        occasion: Occasion,
+        trendKeywords: [String]
     ) async throws -> [Outfit]
 
     /// Scores an outfit 0.0–1.0 against the supplied trending fashion keywords.
@@ -25,7 +26,8 @@ struct MockClaudeService: ClaudeServiceProtocol {
     func generateOutfits(
         wardrobe: [ClothingItem],
         weather: WeatherInfo,
-        occasion: Occasion
+        occasion: Occasion,
+        trendKeywords: [String]
     ) async throws -> [Outfit] {
         let tops = wardrobe.filter { $0.category == .top }
         let bottoms = wardrobe.filter { $0.category == .bottom }

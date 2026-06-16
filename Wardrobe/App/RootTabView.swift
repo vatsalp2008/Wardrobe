@@ -10,7 +10,7 @@ struct RootTabView: View {
             ClosetView(container: container)
                 .tabItem { Label("Closet", systemImage: "square.grid.2x2") }
 
-            OutfitFeedView()
+            OutfitFeedView(container: container)
                 .tabItem { Label("Outfits", systemImage: "sparkles") }
 
             TryOnView()

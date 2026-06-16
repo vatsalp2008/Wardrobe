@@ -9,6 +9,9 @@ struct WardrobeApp: App {
             RootTabView()
                 .environmentObject(container)
                 .tint(DS.Colors.primary)
+                .task {
+                    await NotificationService.shared.requestAndScheduleDailyReminder()
+                }
         }
     }
 }
