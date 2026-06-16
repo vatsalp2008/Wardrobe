@@ -33,6 +33,7 @@ struct GapSuggestion: Identifiable, Codable, Equatable, Hashable {
     var description: String          // e.g. "A white linen shirt"
     var newOutfitsUnlocked: Int
     var trendAlignment: Double       // 0.0–1.0
+    var reasoning: String?           // Stylist explanation from Claude
     var shoppingResults: [ShoppingItem]
     var generatedAt: Date
 
@@ -42,6 +43,7 @@ struct GapSuggestion: Identifiable, Codable, Equatable, Hashable {
         description: String,
         newOutfitsUnlocked: Int,
         trendAlignment: Double,
+        reasoning: String? = nil,
         shoppingResults: [ShoppingItem] = [],
         generatedAt: Date = Date()
     ) {
@@ -50,7 +52,18 @@ struct GapSuggestion: Identifiable, Codable, Equatable, Hashable {
         self.description = description
         self.newOutfitsUnlocked = newOutfitsUnlocked
         self.trendAlignment = trendAlignment
+        self.reasoning = reasoning
         self.shoppingResults = shoppingResults
         self.generatedAt = generatedAt
     }
+}
+
+/// A candidate missing item produced by the combination-matrix analysis (spec §5.4).
+/// `newOutfitsUnlocked` is the number of *additional* valid outfits adding this item enables.
+struct GapCandidate: Codable, Equatable {
+    var category: ClothingCategory
+    var description: String
+    var formality: FormalityLevel
+    var colors: [String]
+    var newOutfitsUnlocked: Int
 }

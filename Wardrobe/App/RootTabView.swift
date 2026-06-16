@@ -16,7 +16,7 @@ struct RootTabView: View {
             TryOnView(container: container)
                 .tabItem { Label("Try On", systemImage: "person.crop.rectangle") }
 
-            GapFinderView()
+            GapFinderView(container: container)
                 .tabItem { Label("Gap Finder", systemImage: "magnifyingglass") }
 
             ProfileView()

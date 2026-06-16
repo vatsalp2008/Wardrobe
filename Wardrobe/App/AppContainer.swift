@@ -42,8 +42,12 @@ final class AppContainer: ObservableObject {
         } else {
             self.replicate = MockReplicateService()
         }
-        // Phase 4: config.isPresent(.serpAPIKey) ? LiveSerpService(...) : MockSerpService()
-        self.serp = MockSerpService()
+        // Live SerpAPI shopping/trends when a key is configured; mock otherwise.
+        if let serpKey = config.value(for: .serpAPIKey) {
+            self.serp = LiveSerpService(apiKey: serpKey)
+        } else {
+            self.serp = MockSerpService()
+        }
         // Seasonal weather by default; WeatherKit (F4) swaps in once the entitlement is available.
         self.weather = SeasonalWeatherService()
         // Phase 5: config.isPresent(.supabaseURL) ? LiveSupabaseService(...) : MockSupabaseService()

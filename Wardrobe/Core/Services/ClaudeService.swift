@@ -16,8 +16,9 @@ protocol ClaudeServiceProtocol: Sendable {
     /// Scores an outfit 0.0–1.0 against the supplied trending fashion keywords.
     func scoreTrend(outfit: Outfit, trendKeywords: [String]) async throws -> Double
 
-    /// Returns the top gap suggestions for the wardrobe (shopping results filled in by SerpService).
-    func analyzeGap(wardrobe: [ClothingItem]) async throws -> [GapSuggestion]
+    /// Picks the top gap suggestions from the matrix-computed candidates, adding reasoning and
+    /// trend alignment (shopping results are filled in afterward by SerpService).
+    func analyzeGap(wardrobe: [ClothingItem], candidates: [GapCandidate]) async throws -> [GapSuggestion]
 }
 
 /// Deterministic, offline stand-in. Doubles as the permanent fallback when no API key
@@ -59,8 +60,17 @@ struct MockClaudeService: ClaudeServiceProtocol {
         min(1.0, 0.5 + Double(outfit.items.count) * 0.1)
     }
 
-    func analyzeGap(wardrobe: [ClothingItem]) async throws -> [GapSuggestion] {
-        [SampleData.sampleGap]
+    func analyzeGap(wardrobe: [ClothingItem], candidates: [GapCandidate]) async throws -> [GapSuggestion] {
+        candidates.prefix(3).map { candidate in
+            GapSuggestion(
+                missingCategory: candidate.category,
+                description: candidate.description,
+                newOutfitsUnlocked: candidate.newOutfitsUnlocked,
+                trendAlignment: 0.7,
+                reasoning: "Adding \(candidate.description.lowercased()) bridges gaps in your "
+                    + "\(candidate.category.displayName.lowercased()) options."
+            )
+        }
     }
 }
 

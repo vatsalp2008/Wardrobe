@@ -41,10 +41,42 @@ struct LiveClaudeService: ClaudeServiceProtocol {
         outfit.trendScore
     }
 
-    func analyzeGap(wardrobe: [ClothingItem]) async throws -> [GapSuggestion] {
-        // Implemented in Phase 4 (Gap Finder). Fall back to the deterministic mock until then.
-        try await MockClaudeService().analyzeGap(wardrobe: wardrobe)
+    func analyzeGap(wardrobe: [ClothingItem], candidates: [GapCandidate]) async throws -> [GapSuggestion] {
+        guard !candidates.isEmpty else { return [] }
+        let payload = GapRequestPayload(
+            wardrobeSize: wardrobe.count,
+            candidates: candidates.enumerated().map { index, candidate in
+                GapCandidateDTO(index: index, description: candidate.description,
+                                category: candidate.category.rawValue,
+                                newOutfitsUnlocked: candidate.newOutfitsUnlocked)
+            }
+        )
+        let userText = try Self.encodeJSONString(payload)
+        let text = try await sendMessage(system: Self.gapSystemPrompt, userText: userText, maxTokens: 1500)
+        let ranked: [GapRankingDTO] = try Self.decodeJSONArray(from: text)
+
+        return ranked.prefix(3).compactMap { ranking -> GapSuggestion? in
+            guard candidates.indices.contains(ranking.index) else { return nil }
+            let candidate = candidates[ranking.index]
+            return GapSuggestion(
+                missingCategory: candidate.category,
+                description: candidate.description,
+                newOutfitsUnlocked: candidate.newOutfitsUnlocked,
+                trendAlignment: ranking.trendAlignment ?? 0.6,
+                reasoning: ranking.reasoning
+            )
+        }
     }
+
+    static let gapSystemPrompt = """
+    You are a personal stylist analyzing a wardrobe's "gaps". You receive a JSON object with the \
+    wardrobe size and a list of candidate items, each with how many NEW valid outfit combinations \
+    it would unlock. Pick the top 3 by overall value (outfits unlocked + versatility + current \
+    trend relevance).
+
+    Respond with ONLY a JSON array (no prose). Each element references a candidate by its index:
+    {"index": <int>, "trendAlignment": 0.0-1.0, "reasoning": "<one short sentence>"}
+    """
 
     // MARK: - HTTP
 
@@ -178,6 +210,24 @@ private struct OutfitDTO: Decodable {
             reasoning: reasoning
         )
     }
+}
+
+private struct GapRequestPayload: Encodable {
+    let wardrobeSize: Int
+    let candidates: [GapCandidateDTO]
+}
+
+private struct GapCandidateDTO: Encodable {
+    let index: Int
+    let description: String
+    let category: String
+    let newOutfitsUnlocked: Int
+}
+
+private struct GapRankingDTO: Decodable {
+    let index: Int
+    let trendAlignment: Double?
+    let reasoning: String?
 }
 
 enum ClaudeError: Error {
