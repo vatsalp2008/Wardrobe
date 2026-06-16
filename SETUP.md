@@ -77,7 +77,18 @@ The app runs local-only without this. To turn on anonymous auth + image hosting:
 3. **Create two Storage buckets** (*Storage → New bucket*):
    - `wardrobe-items` — **Public** (background-removed garment images)
    - `tryon-results` — **Private** (composited try-on images, user-scoped)
-4. **Row-Level Security** for `tryon-results` (so users only see their own): add a policy on `storage.objects` allowing `auth.uid()` to read/write rows where the path is owned by them. (Supabase's storage policy templates cover this — start from the "authenticated users can manage own files" template.)
+4. **Storage policies** — new buckets have 0 policies, so uploads are denied until you add them. Paste into *SQL Editor → Run* (verified working):
+   ```sql
+   create policy "wardrobe_items_insert" on storage.objects for insert to authenticated
+     with check (bucket_id = 'wardrobe-items');
+   create policy "wardrobe_items_update" on storage.objects for update to authenticated
+     using (bucket_id = 'wardrobe-items');
+   create policy "tryon_results_insert" on storage.objects for insert to authenticated
+     with check (bucket_id = 'tryon-results' and owner = auth.uid());
+   create policy "tryon_results_select" on storage.objects for select to authenticated
+     using (bucket_id = 'tryon-results' and owner = auth.uid());
+   ```
+   (`wardrobe-items` is a Public bucket, so reads work via the public URL without a select policy.)
 5. **Add the keys** to `Wardrobe/Config.plist` (gitignored):
    - `SUPABASE_URL` = your Project URL
    - `SUPABASE_ANON_KEY` = your anon public key
