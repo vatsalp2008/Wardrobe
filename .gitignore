@@ -24,6 +24,14 @@ Package.resolved
 
 ## macOS
 .DS_Store
+**/.DS_Store
+
+## Editor / tooling / local assistant settings
+.claude/
+.vscode/
+.idea/
+*.swp
+*~
 
 ## Fastlane / misc
 fastlane/report.xml
