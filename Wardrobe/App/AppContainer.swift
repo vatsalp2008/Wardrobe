@@ -50,8 +50,8 @@ final class AppContainer: ObservableObject {
         }
         // Seasonal weather by default; WeatherKit (F4) swaps in once the entitlement is available.
         self.weather = SeasonalWeatherService()
-        // Phase 5: config.isPresent(.supabaseURL) ? LiveSupabaseService(...) : MockSupabaseService()
-        self.supabase = MockSupabaseService()
+        // Live Supabase (anon auth + image hosting) when configured; local-only mock otherwise.
+        self.supabase = LiveSupabaseService(config: config) ?? MockSupabaseService()
         // Phase 1: config.isPresent(.removeBGKey) ? RemoveBGService(...) : MockBackgroundRemovalService()
         self.backgroundRemoval = MockBackgroundRemovalService()
 

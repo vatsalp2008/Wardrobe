@@ -10,6 +10,7 @@ struct WardrobeApp: App {
                 .environmentObject(container)
                 .tint(DS.Colors.primary)
                 .task {
+                    try? await container.supabase.signInAnonymously()
                     await NotificationService.shared.requestAndScheduleDailyReminder()
                 }
         }

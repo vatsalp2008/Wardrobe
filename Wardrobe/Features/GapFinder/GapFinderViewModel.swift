@@ -10,8 +10,6 @@ final class GapFinderViewModel: ObservableObject {
 
     /// Gap analysis is cached for 24 hours (spec §5.4).
     static let cacheTTL: TimeInterval = 60 * 60 * 24
-    /// Default budget until the Profile budget setting lands (Phase 5).
-    static let defaultBudgetUSD = 100
 
     private let claude: ClaudeServiceProtocol
     private let serp: SerpServiceProtocol
@@ -58,7 +56,7 @@ final class GapFinderViewModel: ObservableObject {
             // Fill shopping results for the top suggestion (the others stay link-free until tapped).
             if let top = ranked.first {
                 let results = (try? await serp.shoppingResults(
-                    query: top.description, maxPriceUSD: Self.defaultBudgetUSD
+                    query: top.description, maxPriceUSD: BudgetStore().budgetUSD
                 )) ?? []
                 ranked[0].shoppingResults = results
             }

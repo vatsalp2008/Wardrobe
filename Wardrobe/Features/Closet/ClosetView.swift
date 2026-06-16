@@ -29,6 +29,7 @@ struct ClosetView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button { showingAddFlow = true } label: { Image(systemName: "plus") }
+                        .accessibilityLabel("Add clothing item")
                 }
             }
         }

@@ -16,6 +16,11 @@ struct NotificationService {
         scheduleDaily(at: hour, center: center)
     }
 
+    /// Cancels the daily reminder (used when the user turns it off in Profile).
+    func cancelDailyReminder() {
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [dailyIdentifier])
+    }
+
     private func scheduleDaily(at hour: Int, center: UNUserNotificationCenter) {
         let content = UNMutableNotificationContent()
         content.title = "Today's Outfits"

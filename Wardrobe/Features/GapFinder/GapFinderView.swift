@@ -33,6 +33,7 @@ struct GapFinderView: View {
                     Button { Task { await viewModel.analyze() } } label: {
                         Image(systemName: "arrow.clockwise")
                     }
+                    .accessibilityLabel("Re-analyze wardrobe gaps")
                     .disabled(viewModel.isAnalyzing)
                 }
             }

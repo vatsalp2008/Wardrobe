@@ -19,7 +19,7 @@ struct RootTabView: View {
             GapFinderView(container: container)
                 .tabItem { Label("Gap Finder", systemImage: "magnifyingglass") }
 
-            ProfileView()
+            ProfileView(container: container)
                 .tabItem { Label("Profile", systemImage: "person.circle") }
         }
     }

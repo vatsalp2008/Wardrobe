@@ -38,6 +38,7 @@ struct OutfitCardView: View {
                     .foregroundStyle(outfit.isFavorited ? .red : DS.Colors.textSecondary)
             }
             .buttonStyle(.plain)
+            .accessibilityLabel(outfit.isFavorited ? "Remove favorite" : "Add favorite")
         }
     }
 

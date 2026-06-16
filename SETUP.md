@@ -68,6 +68,23 @@ Secrets can also be supplied as **Xcode scheme Environment Variables**
 (Product → Scheme → Edit Scheme → Run → Arguments → Environment Variables);
 `AppConfig` reads env vars first, then `Config.plist`.
 
+## 4b. Supabase cloud sync (free — optional, Phase 5)
+
+The app runs local-only without this. To turn on anonymous auth + image hosting:
+
+1. **Create a project** at [supabase.com](https://supabase.com) (free tier). Note the **Project URL** and **anon public key** from *Project Settings → API*.
+2. **Enable anonymous sign-ins:** *Authentication → Providers → Anonymous → enable*.
+3. **Create two Storage buckets** (*Storage → New bucket*):
+   - `wardrobe-items` — **Public** (background-removed garment images)
+   - `tryon-results` — **Private** (composited try-on images, user-scoped)
+4. **Row-Level Security** for `tryon-results` (so users only see their own): add a policy on `storage.objects` allowing `auth.uid()` to read/write rows where the path is owned by them. (Supabase's storage policy templates cover this — start from the "authenticated users can manage own files" template.)
+5. **Add the keys** to `Wardrobe/Config.plist` (gitignored):
+   - `SUPABASE_URL` = your Project URL
+   - `SUPABASE_ANON_KEY` = your anon public key
+6. `xcodegen generate` (so the updated Config.plist is bundled), build, run. On launch the app signs in anonymously and uploads garment images to `wardrobe-items`. The Profile tab's **Cloud sync** row will read **On**.
+
+> Cross-device *data* sync (mirroring the Core Data `wardrobe_items` table) is a follow-on (TRADEOFFS F9) — this step delivers auth + image hosting.
+
 ## 5. Project layout
 
 ```

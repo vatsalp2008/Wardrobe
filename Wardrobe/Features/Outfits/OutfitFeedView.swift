@@ -29,6 +29,7 @@ struct OutfitFeedView: View {
                     } label: {
                         Image(systemName: "arrow.clockwise")
                     }
+                    .accessibilityLabel("Refresh outfits")
                     .disabled(viewModel.isLoading)
                 }
             }
