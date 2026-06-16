@@ -94,7 +94,22 @@ The app runs local-only without this. To turn on anonymous auth + image hosting:
    - `SUPABASE_ANON_KEY` = your anon public key
 6. `xcodegen generate` (so the updated Config.plist is bundled), build, run. On launch the app signs in anonymously and uploads garment images to `wardrobe-items`. The Profile tab's **Cloud sync** row will read **On**.
 
-> Cross-device *data* sync (mirroring the Core Data `wardrobe_items` table) is a follow-on (TRADEOFFS F9) — this step delivers auth + image hosting.
+7. **Cross-device row sync (F9)** — create the `wardrobe_items` table + RLS in *SQL Editor → Run*:
+   ```sql
+   create table if not exists public.wardrobe_items (
+     id uuid primary key,
+     user_id uuid not null default auth.uid(),
+     name text, category text, colors text[], pattern text, formality text, seasons text[],
+     image_url text, wear_count int default 0,
+     last_worn timestamptz, date_added timestamptz default now(),
+     brand text, notes text
+   );
+   alter table public.wardrobe_items enable row level security;
+   create policy "wardrobe_items_owner_all" on public.wardrobe_items for all
+     to authenticated using (user_id = auth.uid()) with check (user_id = auth.uid());
+   ```
+   With this in place, items you add are mirrored to the cloud and pulled back on launch
+   (`SyncingWardrobeRepository`). The app omits `user_id` on write — the column default fills it.
 
 ## 5. Project layout
 
