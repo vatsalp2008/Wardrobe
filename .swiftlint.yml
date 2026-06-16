@@ -1,0 +1,60 @@
+# SwiftLint configuration for Wardrobe
+# Run: swiftlint   (and as an Xcode build phase — see SETUP.md)
+
+included:
+  - Wardrobe
+  - Tests
+
+excluded:
+  - DerivedData
+  - .build
+  - Wardrobe.xcodeproj
+
+# Opt-in rules that enforce project conventions
+opt_in_rules:
+  - empty_count
+  - closure_spacing
+  - contains_over_first_not_nil
+  - explicit_init
+  - first_where
+  - force_unwrapping
+  - implicitly_unwrapped_optional
+  - redundant_nil_coalescing
+  - sorted_imports
+  - unneeded_parentheses_in_closure_argument
+  - vertical_whitespace_closing_braces
+
+disabled_rules:
+  - todo            # TODOs are tracked in the plan, allow them in code
+  - trailing_comma
+
+line_length:
+  warning: 120
+  error: 160
+  ignores_comments: true
+  ignores_urls: true
+
+type_body_length:
+  warning: 300
+  error: 450
+
+file_length:
+  warning: 500
+  error: 800
+
+function_body_length:
+  warning: 60
+  error: 100
+
+identifier_name:
+  min_length:
+    warning: 2
+  excluded: [id, x, y, r, g, b, to, vm]
+
+# Project rule: API keys must never be hardcoded.
+custom_rules:
+  no_hardcoded_api_key:
+    name: "No hardcoded API keys"
+    regex: '(sk-ant-|r8_|key-)[A-Za-z0-9_-]{8,}'
+    message: "API keys must be read from AppConfig (Config.plist / env), never hardcoded."
+    severity: error

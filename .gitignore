@@ -1,0 +1,33 @@
+# Wardrobe — iOS .gitignore
+
+## Secrets (never commit)
+Config.plist
+
+## Xcode
+*.xcuserdata
+**/xcuserdata/
+DerivedData/
+build/
+*.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcuserdata/
+*.xcscmblueprint
+*.xccheckout
+
+## XcodeGen output (regenerate with `xcodegen generate`)
+Wardrobe.xcodeproj/
+
+## Swift Package Manager
+.build/
+.swiftpm/
+Package.resolved
+
+## macOS
+.DS_Store
+
+## Fastlane / misc
+fastlane/report.xml
+fastlane/screenshots
+*.ipa
+*.dSYM.zip
+*.dSYM
