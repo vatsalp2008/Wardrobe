@@ -82,10 +82,10 @@ adding files via Xcode's UI alone won't stick.
 | F4 | 🟡 **WeatherKit** live weather | Requires Apple Developer Program ($99/yr) entitlement; seasonal fallback used until then | Accurate weather-aware outfits (degrades gracefully) | Phase 2 |
 | F5 | ✅ **DONE (Phase 2)** — Live Claude client for outfit generation (`LiveClaudeService`, raw-HTTP `claude-sonnet-4-6`). Activates automatically when `ANTHROPIC_API_KEY` is set; deterministic mock is the offline fallback. *(Gap analysis still routes to the mock until Phase 4.)* | — | — | — |
 | F6 | 🟡 **CLIP embeddings** for visual similarity search | Embedding vector is stubbed on `ClothingItem` for now | "Find similar items" / smarter pairing | Later enhancement |
-| F7 | 🟡 **Replicate IDM-VTON** try-on + result caching + daily cost limit | Needs `REPLICATE_API_TOKEN`; ~\$0.01/run | Virtual try-on | Phase 3 |
+| F7 | 🟡 **Live Replicate IDM-VTON render** | `LiveReplicateService` (POST-then-poll) is implemented + key-gated, but real runs also need a pinned IDM-VTON version hash and publicly hosted image URLs (Phase 5 Supabase). Caching, daily limit, pose validation, and encrypted photo are DONE (Phase 3); the **mock preview composite** works now | Photorealistic try-on render | Pin version hash + Phase 5 hosting |
 | F8 | 🟡 **SerpAPI** live shopping + weekly trend keywords | Needs `SERPAPI_KEY` ($50/mo plan) | Real shopping results in Gap Finder | Phase 4 |
 | F9 | 🟡 **Supabase** auth + cloud sync + storage buckets w/ RLS | Phase 5 scope; local-only until then | Cross-device sync, image hosting | Phase 5 |
-| F10 | 🟡 **CryptoKit** encryption of the user's try-on photo | Phase 3 scope | Privacy guarantee for the body photo | Phase 3 |
+| F10 | ✅ **DONE (Phase 3)** — User try-on photo encrypted at rest with CryptoKit AES-GCM (`UserPhotoStore`); key in Keychain. Plaintext leaves the device only for the Replicate inference call | — | — | — |
 | F11 | 🟢 **Apple Developer Program enrollment** ($99/yr) | Not needed for Simulator work | Gates F3 (device), F4 (WeatherKit), TestFlight | When ready for device/beta |
 
 ---

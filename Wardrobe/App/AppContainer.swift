@@ -36,8 +36,12 @@ final class AppContainer: ObservableObject {
         } else {
             self.claude = MockClaudeService()
         }
-        // Phase 3: config.isPresent(.replicateAPIToken) ? LiveReplicateService(...) : MockReplicateService()
-        self.replicate = MockReplicateService()
+        // Live Replicate (IDM-VTON) when a token is configured; mock render otherwise.
+        if let token = config.value(for: .replicateAPIToken) {
+            self.replicate = LiveReplicateService(apiToken: token)
+        } else {
+            self.replicate = MockReplicateService()
+        }
         // Phase 4: config.isPresent(.serpAPIKey) ? LiveSerpService(...) : MockSerpService()
         self.serp = MockSerpService()
         // Seasonal weather by default; WeatherKit (F4) swaps in once the entitlement is available.

@@ -13,7 +13,7 @@ struct RootTabView: View {
             OutfitFeedView(container: container)
                 .tabItem { Label("Outfits", systemImage: "sparkles") }
 
-            TryOnView()
+            TryOnView(container: container)
                 .tabItem { Label("Try On", systemImage: "person.crop.rectangle") }
 
             GapFinderView()
