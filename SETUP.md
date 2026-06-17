@@ -107,6 +107,8 @@ The app runs local-only without this. To turn on anonymous auth + image hosting:
    alter table public.wardrobe_items enable row level security;
    create policy "wardrobe_items_owner_all" on public.wardrobe_items for all
      to authenticated using (user_id = auth.uid()) with check (user_id = auth.uid());
+   -- Tables created via raw SQL need an explicit grant (the dashboard Table Editor does this automatically):
+   grant select, insert, update, delete on public.wardrobe_items to authenticated;
    ```
    With this in place, items you add are mirrored to the cloud and pulled back on launch
    (`SyncingWardrobeRepository`). The app omits `user_id` on write — the column default fills it.
