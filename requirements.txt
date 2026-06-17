@@ -1,0 +1,43 @@
+# Wardrobe — Requirements
+# Native iOS app (Swift / SwiftUI). This file lists everything needed to build, run, and
+# (optionally) enable the live services. There is no package-manager "install" step beyond
+# the toolchain below — Swift dependencies are resolved by Xcode from project.yml.
+
+[System]
+macOS                 Sonoma 14.0 or newer (Xcode 16+ recommended)
+Xcode                 16.0+            (provides the iOS SDK, simulators, SourceKit)
+iOS deployment target 16.0+            (runs on iPhone; iPhone 12 or newer recommended)
+
+[Command-line tools]  install via Homebrew (https://brew.sh)
+xcodegen              >= 2.40          # generates Wardrobe.xcodeproj from project.yml
+swiftlint             >= 0.55          # lint (runs as a build phase)
+git                   any
+# brew install xcodegen swiftlint
+
+[Swift Package dependencies]  resolved automatically by Xcode (declared in project.yml)
+supabase-swift        >= 2.0.0         https://github.com/supabase/supabase-swift
+swift-collections     >= 1.0.0         https://github.com/apple/swift-collections
+
+[Apple frameworks]  bundled with the iOS SDK — no install required
+SwiftUI, Vision, CoreData, CoreImage, AVFoundation, PhotosUI, CryptoKit,
+UserNotifications, CoreLocation, Security
+
+[External services]  OPTIONAL — app runs fully on mock data with none of these.
+# Add keys to Wardrobe/Config.plist (gitignored). Each missing key falls back to a mock.
+GEMINI_API_KEY        optional   AI tagging + outfit/gap reasoning (Google Gemini)   https://aistudio.google.com/apikey
+ANTHROPIC_API_KEY     optional   same AI features via Claude (used if Gemini key absent)
+SUPABASE_URL          optional   cloud auth + image hosting + cross-device sync (free) https://supabase.com
+SUPABASE_ANON_KEY     optional   Supabase publishable/anon key
+REPLICATE_API_TOKEN   optional   live virtual try-on render (IDM-VTON)
+SERPAPI_KEY           optional   live shopping results in Gap Finder
+
+[Accounts]
+Apple Developer Program   $99/yr   only for device testing, WeatherKit, and App Store / TestFlight
+Supabase                  free     only for cloud sync features
+
+[Build & run]
+xcodegen generate
+open Wardrobe.xcodeproj                # then ⌘R on an iPhone simulator
+# CLI test:
+# xcodebuild -project Wardrobe.xcodeproj -scheme Wardrobe -sdk iphonesimulator \
+#   -destination 'platform=iOS Simulator,name=iPhone 17' test

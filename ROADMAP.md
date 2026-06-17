@@ -1,9 +1,9 @@
 # Wardrobe — Status & Roadmap
 
-_Last updated: 2026-06-16_
+_Last updated: 2026-06-17_
 
-A forward-looking companion to [TRADEOFFS.md](TRADEOFFS.md) (the log of *why* we deferred things).
-This doc answers: **where are we, what's left, and what's ahead.**
+This doc answers: **where are we, what's left, and what's ahead.** See [README.md](README.md) for
+setup and usage.
 
 ---
 
@@ -22,7 +22,7 @@ services with zero keys; live providers activate automatically when their keys a
 | **Gap Finder** | ✅ Live (AI) / mock shopping | Combinatorial matrix + Gemini ranking work; shopping cards are mock until SerpAPI key |
 | **Photo Try-On** | 🟡 Mock render | Encrypted photo, pose validation, caching, daily limit all done; **mock composite** until live Replicate (F7/F12) |
 | **Profile** | ✅ Live | Photo mgmt, wear stats, budget + notification settings, privacy |
-| **Cloud (Supabase)** | ✅ Auth + image hosting live | Verified end-to-end; **row-sync needs the `wardrobe_items` table created** to activate |
+| **Cloud (Supabase)** | ✅ Live | Anonymous auth, image hosting, and cross-device row sync all verified end-to-end |
 
 ### AI provider
 Active provider is **Google Gemini** (`gemini-2.5-flash`), selected because a Gemini key was
@@ -32,7 +32,7 @@ providers is a config change, no code edits. (Claude client `LiveClaudeService` 
 ### What's verified working
 - ✅ Build + 26 tests (CLI + Xcode)
 - ✅ App runs on Simulator (all 5 tabs)
-- ✅ Supabase: anonymous auth, image upload, public URL (tested against the live project)
+- ✅ Supabase: anonymous auth, image upload, public URL, and `wardrobe_items` row insert/read/delete (tested against the live project)
 - ✅ Gemini: `gemini-2.5-flash` `generateContent` returns 200 against the live key
 
 ---
@@ -42,9 +42,8 @@ providers is a config change, no code edits. (Claude client `LiveClaudeService` 
 ### 2a. Free — can do now
 | Task | Effort | Notes |
 |---|---|---|
-| **Run the `wardrobe_items` table SQL** | 1 min | Activates cross-device row sync (F9). SQL in [SETUP.md §4b](SETUP.md). |
-| **Rotate the Gemini key** | 2 min | It was pasted in chat — regenerate in AI Studio, replace in `Wardrobe/Config.plist`. |
-| **Persist outfits / try-on / gap to Core Data** | ~half day | Currently in-memory (TRADEOFFS #2) — they reset on relaunch. Add entities to `Wardrobe.xcdatamodeld`. |
+| **Rotate the Gemini key** | 2 min | Regenerate in AI Studio, replace in `Wardrobe/Config.plist`. |
+| **Persist outfits / try-on / gap to Core Data** | ~half day | Currently in-memory — they reset on relaunch. Add entities to `Wardrobe.xcdatamodeld`. |
 
 ### 2b. Paid / account-gated
 | Task | Cost | Unlocks |
@@ -62,8 +61,8 @@ Not required to ship — quality and depth improvements:
 
 - **CLIP visual similarity (F6)** — "find similar items", smarter pairing; embedding field is stubbed today.
 - **On-device ML classifier (F1, option 2)** — train a CreateML/MobileNetV3 model for offline tagging if you want to drop the network dependency Gemini introduces.
-- **Auto-capture camera (TRADEOFFS #7)** — fire the shutter when the garment fills the frame.
-- **Richer outfit feed (TRADEOFFS #8)** — mixed-occasion batch + a real 7-day trend-keyword cache instead of per-occasion regeneration.
+- **Auto-capture camera** — fire the shutter when the garment fills the frame.
+- **Richer outfit feed** — mixed-occasion batch + a real 7-day trend-keyword cache instead of per-occasion regeneration.
 - **Wardrobe indexing** — use `swift-collections` `OrderedDictionary` for large closets.
 - **Onboarding flow** — the 3-slide intro + permission priming (spec §7.3) is a stub.
 
@@ -72,7 +71,7 @@ Not required to ship — quality and depth improvements:
 ## 4. Path to the App Store (deploy checklist)
 
 1. Enroll in the Apple Developer Program.
-2. Set a real bundle ID (e.g. `com.vatsalp2008.wardrobe`) + `DEVELOPMENT_TEAM` in `project.yml` (TRADEOFFS #4).
+2. Set a real bundle ID (e.g. `com.vatsalp2008.wardrobe`) + `DEVELOPMENT_TEAM` in `project.yml`.
 3. Add an app icon + launch assets to `Assets.xcassets`.
 4. Enable capabilities: WeatherKit, Push Notifications (Signing & Capabilities).
 5. Device-test the camera, WeatherKit, and notifications.
@@ -94,10 +93,7 @@ Not required to ship — quality and depth improvements:
 | F6 | CLIP embeddings / similarity | 🔜 Future enhancement |
 | F7 | Live IDM-VTON render | 🟡 Client done; needs version hash + hosted images |
 | F8 | Live SerpAPI shopping | 🟡 Client done; needs `SERPAPI_KEY` |
-| F9 | Supabase auth + image hosting + row sync | ✅ Done — run the table SQL to activate row sync |
+| F9 | Supabase auth + image hosting + row sync | ✅ Done — verified live (auth, upload, row sync) |
 | F10 | Encrypted user photo | ✅ Done (Phase 3) |
 | F11 | Apple Developer enrollment | 🟡 Needed for device/TestFlight/App Store |
 | F12 | Host person photo for live try-on | 🟡 Pairs with F7 |
-
-See [TRADEOFFS.md](TRADEOFFS.md) for the rationale behind each, and the original spec
-(`Wardrobe_iOS_Project_Spec.docx`) for product context.

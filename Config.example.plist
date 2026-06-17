@@ -3,7 +3,7 @@
 <!--
   Copy this file to `Config.plist` (gitignored) and fill in real values.
   Keys left empty cause the app to run on MOCK services (the Phase 0/early-dev default).
-  See SETUP.md §"API Keys" for where to obtain each value.
+  See the README ("Enabling live services") for where to obtain each value.
 
   Note: ANTHROPIC_API_KEY, REPLICATE_API_TOKEN, SERPAPI_KEY and REMOVE_BG_KEY can
   alternatively be supplied via Xcode scheme Environment Variables instead of this file.

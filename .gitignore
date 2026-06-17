@@ -3,6 +3,11 @@
 ## Secrets (never commit)
 Config.plist
 
+## Internal/personal docs (kept local, not published)
+Wardrobe_iOS_Project_Spec.docx
+SETUP.md
+TRADEOFFS.md
+
 ## Xcode
 *.xcuserdata
 **/xcuserdata/
