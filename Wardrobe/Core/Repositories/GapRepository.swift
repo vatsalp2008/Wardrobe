@@ -64,13 +64,18 @@ final class CoreDataGapRepository: GapRepositoryProtocol, @unchecked Sendable {
     }
 
     func isCacheValid(maxAge: TimeInterval) async -> Bool {
-        let newest = try? await stack.container.performBackgroundTask { context -> Date? in
+        guard let lastUpdated = await newestTimestamp() else { return false }
+        return Date().timeIntervalSince(lastUpdated) < maxAge
+    }
+
+    /// Timestamp of the freshest cached suggestion, or nil when the cache is empty or unreadable.
+    /// The protocol method isn't throwing, so a fetch failure is treated as "no cache".
+    private func newestTimestamp() async -> Date? {
+        try? await stack.container.performBackgroundTask { context in
             let request = GapSuggestionEntity.fetchRequest()
             request.sortDescriptors = [NSSortDescriptor(key: "generatedAt", ascending: false)]
             request.fetchLimit = 1
             return try context.fetch(request).first?.generatedAt
         }
-        guard let lastUpdated = newest ?? nil else { return false }
-        return Date().timeIntervalSince(lastUpdated) < maxAge
     }
 }
