@@ -32,7 +32,7 @@ Core Data with optional Supabase cloud sync.
 - **Pattern:** MVVM + Repository. Every external service is a Swift protocol with a `Mock`/`Live`
   pair, wired by a DI container (`AppContainer`) based on which keys are present — so the app is
   fully runnable offline and each integration can be developed/tested in isolation.
-- **Tooling:** XcodeGen (the `.xcodeproj` is generated from `project.yml`), SwiftLint, XCTest (26 tests)
+- **Tooling:** XcodeGen (the `.xcodeproj` is generated from `project.yml`), SwiftLint, XCTest (49 tests)
 
 ---
 
@@ -83,7 +83,7 @@ xcodegen generate                                # bundles it into the app
 | `GEMINI_API_KEY` | AI tagging + outfit/gap reasoning (Google Gemini) | https://aistudio.google.com/apikey |
 | `ANTHROPIC_API_KEY` | Same AI features via Claude (used only if no Gemini key) | https://console.anthropic.com |
 | `SUPABASE_URL` + `SUPABASE_ANON_KEY` | Cloud auth, image hosting, cross-device sync (free tier) | Supabase → Project Settings → API |
-| `REPLICATE_API_TOKEN` | Real virtual try-on render | https://replicate.com |
+| `REPLICATE_API_TOKEN` + `REPLICATE_MODEL_VERSION` | Real virtual try-on render (both required — a token without a pinned IDM-VTON version stays on the mock) | https://replicate.com |
 | `SERPAPI_KEY` | Real shopping results | https://serpapi.com |
 
 Provider precedence for the AI stylist: **Gemini → Claude → deterministic mock.** Any missing key
