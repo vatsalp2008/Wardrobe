@@ -1,8 +1,8 @@
 import Foundation
 
 /// Abstraction over Supabase auth + storage (spec §6.3). Lets the app run local-only when
-/// no Supabase credentials are configured. Live adapter (supabase-swift) added in Phase 5;
-/// Phase 0 ships `MockSupabaseService`.
+/// no Supabase credentials are configured. `LiveSupabaseService` (supabase-swift) handles anon
+/// auth, image hosting, and row sync; `MockSupabaseService` stands in when unconfigured.
 protocol SupabaseServiceProtocol: Sendable {
     /// Whether a real backend is configured. When false the app operates in local-only mode.
     var isConfigured: Bool { get }

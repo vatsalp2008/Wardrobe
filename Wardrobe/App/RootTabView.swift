@@ -1,7 +1,6 @@
 import SwiftUI
 
-/// The five-tab shell (spec §7.1). Tabs hold placeholder screens in Phase 0 and are filled
-/// in by their respective feature phases.
+/// The five-tab shell (spec §7.1). Each tab owns a fully implemented feature screen.
 struct RootTabView: View {
     @EnvironmentObject private var container: AppContainer
 

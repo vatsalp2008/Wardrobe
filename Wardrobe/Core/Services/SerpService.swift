@@ -1,7 +1,8 @@
 import Foundation
 
 /// Live shopping + trend keywords via SerpAPI Google Shopping (spec §5.2 / §5.4).
-/// Live adapter added in Phase 4; Phase 0 ships `MockSerpService`.
+/// `LiveSerpService` is wired but inactive without `SERPAPI_KEY`, so shopping cards come from
+/// `MockSerpService` today.
 protocol SerpServiceProtocol: Sendable {
     /// Top shopping results for a gap item, optionally bounded by a max price.
     func shoppingResults(query: String, maxPriceUSD: Int?) async throws -> [ShoppingItem]

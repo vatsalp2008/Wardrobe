@@ -4,8 +4,8 @@ import Foundation
 ///
 /// Constructs every service and repository once and hands them to ViewModels. Each external
 /// service resolves to its **Live** adapter when the relevant key is configured, otherwise its
-/// **Mock** (mock-first). Phase 0 has no Live adapters yet, so everything resolves to a mock —
-/// the `// Phase N:` markers show exactly where each live wiring lands.
+/// **Mock** (mock-first), so the app runs end to end with no keys at all. The selection rules
+/// live in `init` below; adding or removing a key in `Config.plist` is the only switch.
 @MainActor
 final class AppContainer: ObservableObject {
     // External services
@@ -56,7 +56,8 @@ final class AppContainer: ObservableObject {
         self.weather = SeasonalWeatherService()
         // Live Supabase (anon auth + image hosting) when configured; local-only mock otherwise.
         self.supabase = LiveSupabaseService(config: config) ?? MockSupabaseService()
-        // Phase 1: config.isPresent(.removeBGKey) ? RemoveBGService(...) : MockBackgroundRemovalService()
+        // On-device `LiveVisionService` is the real segmentation path; this is only its fallback.
+        // remove.bg is a paid alternative that hasn't been needed, so the no-op mock stands in.
         self.backgroundRemoval = MockBackgroundRemovalService()
 
         // On-device Vision segmentation + dominant-color classifier (Phase 1).

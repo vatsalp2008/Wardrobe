@@ -1,8 +1,9 @@
 import Foundation
 
 /// Wraps the Claude API (spec §6.1) for the app's three AI tasks: outfit generation,
-/// trend scoring, and gap analysis. The live adapter (`POST /v1/messages`,
-/// model `claude-sonnet-4-6`) is implemented in Phase 2/4; Phase 0 ships `MockClaudeService`.
+/// trend scoring, and gap analysis. `LiveClaudeService` (`POST /v1/messages`) implements it, as
+/// does `GeminiStylistService`; `AppContainer` prefers Gemini, then Claude, then
+/// `MockClaudeService` when no key is set.
 protocol ClaudeServiceProtocol: Sendable {
     /// Returns up to 5 outfits assembled from `wardrobe`, respecting weather, occasion,
     /// trend keywords, and recent-wear rules.

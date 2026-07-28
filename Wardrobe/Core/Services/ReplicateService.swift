@@ -1,7 +1,8 @@
 import Foundation
 
 /// Virtual try-on via Replicate's IDM-VTON model (spec §6.2). The live adapter uses the
-/// POST-then-poll prediction pattern; Phase 0 ships `MockReplicateService`.
+/// POST-then-poll prediction pattern; `MockReplicateService` renders a local composite instead
+/// when no Replicate token is configured.
 protocol ReplicateServiceProtocol: Sendable {
     /// Composites the garment images onto the person image and returns a rendered image URL.
     /// - Parameters:

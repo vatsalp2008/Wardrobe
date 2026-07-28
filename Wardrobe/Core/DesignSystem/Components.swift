@@ -59,7 +59,8 @@ struct CardContainer<Content: View>: View {
 
 // MARK: - Empty state
 
-/// Shared placeholder shown by feature tabs until their content is implemented.
+/// Shared zero-data state: shown when a screen has loaded successfully but has nothing to show
+/// (an empty closet, no saved try-on photo, no gap results yet).
 struct EmptyStateView: View {
     let systemImage: String
     let title: String
