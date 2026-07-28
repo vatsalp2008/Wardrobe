@@ -38,9 +38,11 @@ final class AppContainer: ObservableObject {
         } else {
             self.claude = MockClaudeService()
         }
-        // Live Replicate (IDM-VTON) when a token is configured; mock render otherwise.
-        if let token = config.value(for: .replicateAPIToken) {
-            self.replicate = LiveReplicateService(apiToken: token)
+        // Live Replicate (IDM-VTON) only when the token *and* a pinned model version are both
+        // configured; a token alone would POST an unusable version and fail. Mock render otherwise.
+        if let token = config.value(for: .replicateAPIToken),
+           let modelVersion = config.value(for: .replicateModelVersion) {
+            self.replicate = LiveReplicateService(apiToken: token, modelVersion: modelVersion)
         } else {
             self.replicate = MockReplicateService()
         }

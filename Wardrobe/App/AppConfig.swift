@@ -10,6 +10,12 @@ struct AppConfig {
 
     private let plist: [String: Any]
 
+    /// Test seam: build a config from literal values instead of the bundled plist, so
+    /// adapter-selection logic in `AppContainer` can be exercised without touching Config.plist.
+    init(overrides: [String: Any]) {
+        self.plist = overrides
+    }
+
     private init() {
         if let url = Bundle.main.url(forResource: "Config", withExtension: "plist"),
            let data = try? Data(contentsOf: url),
@@ -38,6 +44,9 @@ struct AppConfig {
         case anthropicAPIKey = "ANTHROPIC_API_KEY"
         case geminiAPIKey = "GEMINI_API_KEY"
         case replicateAPIToken = "REPLICATE_API_TOKEN"
+        /// Pinned IDM-VTON version hash. Not a secret, but resolved the same way; live try-on
+        /// needs this *and* the token, so a half-configured setup falls back to the mock.
+        case replicateModelVersion = "REPLICATE_MODEL_VERSION"
         case supabaseURL = "SUPABASE_URL"
         case supabaseAnonKey = "SUPABASE_ANON_KEY"
         case serpAPIKey = "SERPAPI_KEY"

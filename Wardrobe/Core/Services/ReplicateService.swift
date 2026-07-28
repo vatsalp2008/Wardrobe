@@ -31,18 +31,19 @@ struct MockReplicateService: ReplicateServiceProtocol {
 
 /// Live IDM-VTON client (spec §6.2): POST a prediction, then poll until `succeeded`.
 ///
-/// Selected by `AppContainer` only when `REPLICATE_API_TOKEN` is present. NOTE (TRADEOFFS F7):
-/// real runs also require **publicly reachable image URLs** for the person and garment images —
-/// which arrive with real Supabase hosting in Phase 5. Until then the mock path is used and this
-/// client is wired but unexercised. IDM-VTON composites one garment per call, so we use the first.
+/// Selected by `AppContainer` only when **both** `REPLICATE_API_TOKEN` and
+/// `REPLICATE_MODEL_VERSION` are present — a token without a pinned version would just POST
+/// garbage and 422. Real runs also need publicly reachable image URLs for the person and garment
+/// images (F7/F12); `TryOnViewModel` checks that precondition before spending a call.
+/// IDM-VTON composites one garment per call, so we use the first.
 struct LiveReplicateService: ReplicateServiceProtocol {
-    /// Pin the exact IDM-VTON model version hash from replicate.com before going live.
-    static let modelVersion = "REPLACE_WITH_IDM_VTON_VERSION_HASH"
     static let createURL = URL(string: "https://api.replicate.com/v1/predictions")!
-    static let pollInterval: Duration = .seconds(3)
     static let maxPolls = 40   // ~2 minutes
 
     let apiToken: String
+    /// The exact IDM-VTON version hash from the model's Versions tab on replicate.com.
+    let modelVersion: String
+    var pollInterval: Duration = .seconds(3)
     var session: URLSession = .shared
 
     func generateTryOn(personImageURL: String, garmentImageURLs: [String]) async throws -> String {
@@ -58,7 +59,7 @@ struct LiveReplicateService: ReplicateServiceProtocol {
             case "failed", "canceled":
                 throw ReplicateError.predictionFailed(status)
             default:
-                try await Task.sleep(for: Self.pollInterval)
+                try await Task.sleep(for: pollInterval)
             }
         }
         throw ReplicateError.timedOut
@@ -70,7 +71,7 @@ struct LiveReplicateService: ReplicateServiceProtocol {
         request.setValue("Token \(apiToken)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         let body = CreateRequest(
-            version: Self.modelVersion,
+            version: modelVersion,
             input: .init(humanImg: person, garmImg: garment, garmentDes: "garment")
         )
         request.httpBody = try JSONEncoder().encode(body)

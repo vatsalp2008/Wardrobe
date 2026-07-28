@@ -28,7 +28,8 @@ GEMINI_API_KEY        optional   AI tagging + outfit/gap reasoning (Google Gemin
 ANTHROPIC_API_KEY     optional   same AI features via Claude (used if Gemini key absent)
 SUPABASE_URL          optional   cloud auth + image hosting + cross-device sync (free) https://supabase.com
 SUPABASE_ANON_KEY     optional   Supabase publishable/anon key
-REPLICATE_API_TOKEN   optional   live virtual try-on render (IDM-VTON)
+REPLICATE_API_TOKEN   optional   live virtual try-on render (IDM-VTON) — needs the next key too
+REPLICATE_MODEL_VERSION optional pinned IDM-VTON version hash (replicate.com model → Versions)
 SERPAPI_KEY           optional   live shopping results in Gap Finder
 
 [Accounts]

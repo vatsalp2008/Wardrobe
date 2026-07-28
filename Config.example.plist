@@ -17,7 +17,13 @@
     <key>GEMINI_API_KEY</key>
     <string></string>
 
+    <!-- Live virtual try-on needs BOTH of the next two keys; with only one, the app keeps
+         using the local mock composite. The version hash is on the IDM-VTON model page at
+         replicate.com under the "Versions" tab. -->
     <key>REPLICATE_API_TOKEN</key>
+    <string></string>
+
+    <key>REPLICATE_MODEL_VERSION</key>
     <string></string>
 
     <key>SUPABASE_URL</key>
