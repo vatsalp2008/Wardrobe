@@ -16,7 +16,7 @@ final class ProfileViewModel: ObservableObject {
     private let wardrobe: WardrobeRepositoryProtocol
     private let photoStore = UserPhotoStore.shared
     private var budgetStore = BudgetStore()
-    private let remindersKey = "settings.dailyRemindersEnabled"
+    private let remindersKey = NotificationService.remindersEnabledKey
 
     var cloudSyncEnabled: Bool { AppConfig.shared.isPresent(.supabaseURL) }
 

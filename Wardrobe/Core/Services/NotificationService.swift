@@ -6,14 +6,21 @@ import UserNotifications
 struct NotificationService {
     static let shared = NotificationService()
 
+    /// UserDefaults key for the Profile reminder toggle. Owned here so onboarding and Profile
+    /// can't drift apart on the literal.
+    static let remindersEnabledKey = "settings.dailyRemindersEnabled"
+
     private let dailyIdentifier = "daily-outfit-reminder"
 
     /// Requests permission and (if granted) schedules the daily reminder. Safe to call on launch.
-    func requestAndScheduleDailyReminder(hour: Int = 8) async {
+    /// Returns whether authorization was granted, so onboarding can reflect it in the UI.
+    @discardableResult
+    func requestAndScheduleDailyReminder(hour: Int = 8) async -> Bool {
         let center = UNUserNotificationCenter.current()
         let granted = (try? await center.requestAuthorization(options: [.alert, .sound, .badge])) ?? false
-        guard granted else { return }
+        guard granted else { return false }
         scheduleDaily(at: hour, center: center)
+        return true
     }
 
     /// Cancels the daily reminder (used when the user turns it off in Profile).
