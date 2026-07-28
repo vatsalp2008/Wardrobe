@@ -49,6 +49,19 @@ struct UserPhotoStore {
         try? FileManager.default.removeItem(at: fileURL)
     }
 
+    /// Short content hash of the stored ciphertext, or nil when no photo is saved.
+    ///
+    /// Used to give the try-on person photo a content-addressed remote file name, so uploading
+    /// the same photo twice overwrites one object instead of accumulating copies. Hashing the
+    /// ciphertext (not the plaintext) keeps the photo encrypted at rest throughout.
+    var fingerprint: String? {
+        guard let combined = try? Data(contentsOf: fileURL) else { return nil }
+        return SHA256.hash(data: combined)
+            .prefix(8)
+            .map { String(format: "%02x", $0) }
+            .joined()
+    }
+
     // MARK: - Keychain-backed symmetric key
 
     private func loadOrCreateKey() throws -> SymmetricKey {

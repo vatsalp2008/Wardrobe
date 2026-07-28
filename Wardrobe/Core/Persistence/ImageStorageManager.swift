@@ -5,8 +5,15 @@ import UIKit
 /// to Supabase Storage, returning the remote URL (spec §5.1 / §6.3). Backed by
 /// `SupabaseServiceProtocol`, so it returns mock URLs in local-only mode.
 protocol ImageStorageManaging: Sendable {
-    /// Uploads a PNG (≤ 1024², per spec §5.1) and returns its URL.
+    /// Uploads a PNG (≤ 1024², per spec §5.1) and returns its public URL.
     func store(_ image: UIImage, bucket: StorageBucket, fileName: String) async throws -> String
+    /// Uploads a PNG to a private bucket and returns a signed URL valid for `expiresIn` seconds.
+    func storePrivate(
+        _ image: UIImage,
+        bucket: StorageBucket,
+        fileName: String,
+        expiresIn: Int
+    ) async throws -> String
     /// Generates a small thumbnail `Data` blob for offline display in Core Data.
     func thumbnailData(for image: UIImage, maxDimension: CGFloat) -> Data?
 }
@@ -20,6 +27,21 @@ struct ImageStorageManager: ImageStorageManaging {
             throw ImageStorageError.encodingFailed
         }
         return try await supabase.uploadImage(data, bucket: bucket, fileName: fileName)
+    }
+
+    func storePrivate(
+        _ image: UIImage,
+        bucket: StorageBucket,
+        fileName: String,
+        expiresIn: Int
+    ) async throws -> String {
+        let resized = image.resized(maxDimension: 1024)
+        guard let data = resized.pngData() else {
+            throw ImageStorageError.encodingFailed
+        }
+        return try await supabase.uploadPrivateImage(
+            data, bucket: bucket, fileName: fileName, expiresIn: expiresIn
+        )
     }
 
     func thumbnailData(for image: UIImage, maxDimension: CGFloat = 256) -> Data? {

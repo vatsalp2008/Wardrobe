@@ -35,6 +35,21 @@ final class LiveSupabaseService: SupabaseServiceProtocol, @unchecked Sendable {
         return try storage.getPublicURL(path: fileName).absoluteString
     }
 
+    func uploadPrivateImage(
+        _ data: Data,
+        bucket: StorageBucket,
+        fileName: String,
+        expiresIn: Int
+    ) async throws -> String {
+        let storage = client.storage.from(bucket.rawValue)
+        _ = try await storage.upload(
+            fileName,
+            data: data,
+            options: FileOptions(contentType: "image/png", upsert: true)
+        )
+        return try await storage.createSignedURL(path: fileName, expiresIn: expiresIn).absoluteString
+    }
+
     // MARK: - Wardrobe row sync (F9)
 
     private static let table = "wardrobe_items"

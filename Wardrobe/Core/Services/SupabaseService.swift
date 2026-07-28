@@ -10,8 +10,18 @@ protocol SupabaseServiceProtocol: Sendable {
     /// Signs in anonymously on first launch (no sign-up required).
     func signInAnonymously() async throws
 
-    /// Uploads image data to the named bucket and returns its URL.
+    /// Uploads image data to the named bucket and returns its **public** URL.
     func uploadImage(_ data: Data, bucket: StorageBucket, fileName: String) async throws -> String
+
+    /// Uploads image data to a private bucket and returns a **signed** URL valid for
+    /// `expiresIn` seconds. `uploadImage`'s public URL is useless for a private bucket, which is
+    /// what the try-on person photo needs (F12).
+    func uploadPrivateImage(
+        _ data: Data,
+        bucket: StorageBucket,
+        fileName: String,
+        expiresIn: Int
+    ) async throws -> String
 
     // MARK: - Wardrobe row sync (F9)
 
@@ -37,6 +47,15 @@ struct MockSupabaseService: SupabaseServiceProtocol {
 
     func uploadImage(_ data: Data, bucket: StorageBucket, fileName: String) async throws -> String {
         "mock://\(bucket.rawValue)/\(fileName)"
+    }
+
+    func uploadPrivateImage(
+        _ data: Data,
+        bucket: StorageBucket,
+        fileName: String,
+        expiresIn: Int
+    ) async throws -> String {
+        "mock://\(bucket.rawValue)/\(fileName)?signed"
     }
 
     func upsertItem(_ item: ClothingItem) async throws {}
