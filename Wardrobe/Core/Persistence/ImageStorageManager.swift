@@ -54,14 +54,19 @@ enum ImageStorageError: Error {
 }
 
 extension UIImage {
-    /// Aspect-fit resize so the longest side is at most `maxDimension`. No upscaling.
+    /// Aspect-fit resize so the longest side is at most `maxDimension` **pixels**. No upscaling.
+    ///
+    /// The renderer format is pinned to scale 1 deliberately: at the default (device) scale a
+    /// 1024pt resize produces a 3072px image on a 3x phone, so the spec's ≤1024² cap — and the
+    /// upload sizes that depend on it — would be missed by 9x.
     func resized(maxDimension: CGFloat) -> UIImage {
         let longest = max(size.width, size.height)
         guard longest > maxDimension, longest > 0 else { return self }
         let scale = maxDimension / longest
         let newSize = CGSize(width: size.width * scale, height: size.height * scale)
-        let renderer = UIGraphicsImageRenderer(size: newSize)
-        return renderer.image { _ in
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        return UIGraphicsImageRenderer(size: newSize, format: format).image { _ in
             draw(in: CGRect(origin: .zero, size: newSize))
         }
     }
