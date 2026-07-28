@@ -65,4 +65,65 @@ final class Phase4GapTests: XCTestCase {
         XCTAssertEqual(suggestions.first?.missingCategory, .bottom)
         XCTAssertEqual(suggestions.first?.newOutfitsUnlocked, 6)
     }
+
+    // MARK: - Core Data cache
+
+    private func suggestion(_ description: String, _ category: ClothingCategory,
+                            unlocked: Int, generatedAt: Date = Date(),
+                            shopping: [ShoppingItem] = []) -> GapSuggestion {
+        GapSuggestion(missingCategory: category, description: description,
+                      newOutfitsUnlocked: unlocked, trendAlignment: 0.7,
+                      reasoning: "why", shoppingResults: shopping, generatedAt: generatedAt)
+    }
+
+    /// Rank has to be stored explicitly — Core Data fetches are unordered, and the Gap Finder
+    /// shows `suggestions.first` as *the* gap.
+    func testGapSuggestionsRoundTripPreservesRankAndShoppingResults() async throws {
+        let repo = CoreDataGapRepository(stack: .inMemory())
+        let shopping = [ShoppingItem(title: "Chinos", price: "$39.99", retailer: "Uniqlo",
+                                     imageURL: "https://x/i.png", buyLink: "https://x/buy")]
+        let ranked = [
+            suggestion("Navy chinos", .bottom, unlocked: 6, shopping: shopping),
+            suggestion("White sneakers", .shoes, unlocked: 4),
+            suggestion("White shirt", .top, unlocked: 2)
+        ]
+        try await repo.save(ranked)
+
+        let cached = try await repo.cachedSuggestions()
+        let stored = try XCTUnwrap(cached)
+        XCTAssertEqual(stored.map(\.description), ["Navy chinos", "White sneakers", "White shirt"])
+        XCTAssertEqual(stored.first?.missingCategory, .bottom)
+        XCTAssertEqual(stored.first?.newOutfitsUnlocked, 6)
+        XCTAssertEqual(stored.first?.shoppingResults.first?.retailer, "Uniqlo")
+    }
+
+    func testEmptyCacheReturnsNilNotEmptyArray() async throws {
+        let repo = CoreDataGapRepository(stack: .inMemory())
+        let cached = try await repo.cachedSuggestions()
+        XCTAssertNil(cached)
+    }
+
+    func testGapCacheValidityUsesPersistedTimestamp() async throws {
+        let stale = CoreDataGapRepository(stack: .inMemory())
+        let dayAgo = Date().addingTimeInterval(-25 * 3600)
+        try await stale.save([suggestion("Old", .bottom, unlocked: 3, generatedAt: dayAgo)])
+        let staleValid = await stale.isCacheValid(maxAge: 86_400)
+        XCTAssertFalse(staleValid)
+
+        let fresh = CoreDataGapRepository(stack: .inMemory())
+        try await fresh.save([suggestion("New", .bottom, unlocked: 3)])
+        let freshValid = await fresh.isCacheValid(maxAge: 86_400)
+        XCTAssertTrue(freshValid)
+    }
+
+    func testSaveReplacesPreviousGapCache() async throws {
+        let repo = CoreDataGapRepository(stack: .inMemory())
+        try await repo.save([suggestion("First", .bottom, unlocked: 5),
+                             suggestion("Second", .shoes, unlocked: 3)])
+        try await repo.save([suggestion("Only", .top, unlocked: 9)])
+
+        let cached = try await repo.cachedSuggestions()
+        let stored = try XCTUnwrap(cached)
+        XCTAssertEqual(stored.map(\.description), ["Only"])
+    }
 }

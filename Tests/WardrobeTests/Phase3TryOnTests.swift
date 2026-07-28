@@ -46,4 +46,55 @@ final class Phase3TryOnTests: XCTestCase {
         XCTAssertEqual(loaded.size.width, size.width, accuracy: 1)
         XCTAssertEqual(loaded.size.height, size.height, accuracy: 1)
     }
+
+    // MARK: - Core Data render cache
+
+    private func makeImage() -> UIImage {
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        return UIGraphicsImageRenderer(size: CGSize(width: 10, height: 10), format: format).image { ctx in
+            UIColor.systemPink.setFill()
+            ctx.fill(CGRect(x: 0, y: 0, width: 10, height: 10))
+        }
+    }
+
+    func testTryOnResultRoundTripByOutfitID() async throws {
+        let repo = CoreDataTryOnRepository(stack: .inMemory())
+        let outfitID = UUID()
+        let result = TryOnResult(outfitID: outfitID, renderedImageURL: "file:///tmp/a.png")
+        try await repo.save(result)
+
+        let cached = try await repo.cachedResult(for: outfitID)
+        let stored = try XCTUnwrap(cached)
+        XCTAssertEqual(stored.outfitID, outfitID)
+        XCTAssertEqual(stored.renderedImageURL, "file:///tmp/a.png")
+
+        let miss = try await repo.cachedResult(for: UUID())
+        XCTAssertNil(miss)
+    }
+
+    func testSavingSameOutfitTwiceUpsertsSingleRow() async throws {
+        let repo = CoreDataTryOnRepository(stack: .inMemory())
+        let outfitID = UUID()
+        try await repo.save(TryOnResult(outfitID: outfitID, renderedImageURL: "file:///tmp/old.png"))
+        try await repo.save(TryOnResult(outfitID: outfitID, renderedImageURL: "file:///tmp/new.png"))
+
+        let cached = try await repo.cachedResult(for: outfitID)
+        let stored = try XCTUnwrap(cached)
+        XCTAssertEqual(stored.renderedImageURL, "file:///tmp/new.png")
+    }
+
+    /// Persisted URLs embed the app-container UUID, which changes on update/restore. The store
+    /// must still find the file by name rather than reporting a cache miss.
+    func testLocalImageStoreLoadsByFileNameWhenAbsolutePathIsStale() throws {
+        let store = LocalImageStore.shared
+        let name = "stale-path-test-\(UUID().uuidString)"
+        let written = try XCTUnwrap(store.write(makeImage(), name: name))
+        defer { try? FileManager.default.removeItem(at: written) }
+
+        let staleURL = URL(fileURLWithPath: "/var/mobile/Containers/Data/Application/OLD-UUID/"
+                           + written.lastPathComponent)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: staleURL.path))
+        XCTAssertNotNil(store.load(staleURL.absoluteString))
+    }
 }
