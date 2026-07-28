@@ -11,6 +11,10 @@ struct UserPhotoStore {
     static let shared = UserPhotoStore()
 
     private let fileName = "user-photo.enc"
+    /// Legacy identifier — intentionally still `com.yourname.*` after the bundle ID was renamed to
+    /// `com.vatsalp2008.wardrobe`. This is a Keychain account label, not derived from the bundle ID.
+    /// Renaming it orphans the AES key of any already-saved photo, which fails silently: `hasPhoto`
+    /// is a file-existence check, so the Try-On hub would report a photo it can no longer decrypt.
     private let keychainAccount = "com.yourname.wardrobe.userphoto.key"
 
     private var fileURL: URL {
