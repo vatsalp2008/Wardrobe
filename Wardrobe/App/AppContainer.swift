@@ -72,8 +72,10 @@ final class AppContainer: ObservableObject {
         } else {
             self.wardrobe = localWardrobe
         }
-        self.outfits = InMemoryOutfitRepository()
-        self.tryOn = InMemoryTryOnRepository()
-        self.gap = InMemoryGapRepository()
+        // Local-first Core Data for generated outfits, the try-on render cache, and gap analysis,
+        // so all three survive relaunch (they share `CoreDataStack.shared` with the wardrobe).
+        self.outfits = CoreDataOutfitRepository()
+        self.tryOn = CoreDataTryOnRepository()
+        self.gap = CoreDataGapRepository()
     }
 }
